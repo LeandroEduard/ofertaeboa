@@ -1,3 +1,15 @@
+// --- Proteção por link secreto ---
+const CHAVE_SECRETA = "leandro-adm-30f3k71"; // <- troque aqui
+const params = new URLSearchParams(window.location.search);
+const chaveFornecida = params.get("chave");
+
+if (chaveFornecida !== CHAVE_SECRETA) {
+  document.write("<h1>404 - Página não encontrada</h1>");
+  throw new Error("Acesso negado");
+}
+// --- Fim da proteção ---
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
