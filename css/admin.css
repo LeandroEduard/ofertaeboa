@@ -1,0 +1,118 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f0f2f5;
+  padding: 30px 15px;
+}
+
+.painel {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 25px 0 10px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 12px 0 4px;
+  color: #333;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.checkbox-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.checkbox-linha input {
+  width: auto;
+}
+
+button {
+  margin-top: 15px;
+  margin-right: 8px;
+  padding: 10px 16px;
+  background: #2979ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #1e5fd9;
+}
+
+.btn-cancelar {
+  background: #999;
+}
+.btn-cancelar:hover {
+  background: #777;
+}
+
+.btn-limpar {
+  background: #e53935;
+}
+.btn-limpar:hover {
+  background: #c62828;
+}
+
+#lista-cadastrados {
+  margin-top: 10px;
+}
+
+.item-cadastrado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.item-cadastrado button {
+  margin-top: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+#codigoGerado {
+  font-family: monospace;
+  font-size: 12px;
+  background: #f7f7f7;
+}
