@@ -136,10 +136,13 @@ body {
 }
 
 .tag-pix {
-  font-size: 13px;
-  font-weight: 700;
+  background: #e8f5e9;
   color: #2e7d32;
-  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-left: 6px;
 }
 
 /* PREÇO EM OUTROS MEIOS */
