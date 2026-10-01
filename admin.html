@@ -20,6 +20,7 @@ if (chaveFornecida !== CHAVE_SECRETA) {
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <style>
   .admin-container { max-width: 600px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
@@ -42,65 +43,81 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   .lista-cadastrados button.btn-editar { background: #ffa000; padding: 5px 10px; font-size: 12px; margin: 0; }
   .lista-cadastrados button.btn-excluir { background: #e53935; padding: 5px 10px; font-size: 12px; margin: 0; }
   .status-msg { text-align: center; font-size: 13px; color: #666; margin: 10px auto; max-width: 600px; }
+
+  #loginBox { max-width: 320px; margin: 80px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+  #loginBox input { width: 100%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+  #loginBox button { margin-top: 15px; padding: 10px 20px; background: #2979ff; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
 </style>
 </head>
 <body>
 
-<p class="status-msg" id="status-conexao">Conectando ao banco de dados...</p>
-
-<div class="admin-container">
-  <h2 id="titulo-form">Cadastrar Produto</h2>
-
-  <input type="hidden" id="editandoId" value="">
-
-  <label>Nome do Produto</label>
-  <input type="text" id="nome" placeholder="Ex: Kit Limpeza Principia">
-
-  <label>Descrição</label>
-  <textarea id="descricao" rows="2" placeholder="Ex: Todo tipo de pele Dia/noite"></textarea>
-
-  <label>Imagem (URL)</label>
-  <input type="text" id="imagem" placeholder="img/produto.jpg">
-
-  <label>Categoria</label>
-  <input type="text" id="categoria" placeholder="Ex: beleza, eletronicos, casa">
-
-  <label>Preço Original (riscado) — opcional</label>
-  <input type="text" id="precoDe" placeholder="Ex: R$ 110,25">
-
-  <label>Preço com Pix (aparece em destaque)</label>
-  <input type="text" id="precoPor" placeholder="Ex: R$ 76,07">
-
-  <label>Desconto no Pix (%) — opcional</label>
-  <input type="number" id="descontoPix" placeholder="Ex: 31">
-
-  <label>Preço em outros meios (sem Pix)</label>
-  <input type="text" id="outrosMeios" placeholder="Ex: 82,68">
-
-  <div class="checkbox-linha">
-    <input type="checkbox" id="pixAtivo">
-    <label style="margin:0;">Desconto exclusivo no Pix</label>
-  </div>
-
-  <div class="checkbox-linha">
-    <input type="checkbox" id="freteGratis">
-    <label style="margin:0;">Frete grátis</label>
-  </div>
-
-  <label>Selo (opcional)</label>
-  <input type="text" id="selo" placeholder="Ex: MAIS VENDIDO">
-
-  <label>Link de Afiliado</label>
-  <input type="url" id="linkAfiliado" placeholder="https://...">
-
-  <button onclick="salvarProduto()" id="btnSalvar">Salvar Produto</button>
+<div id="loginBox">
+  <h2>Login Admin</h2>
+  <input type="email" id="email" placeholder="E-mail" />
+  <input type="password" id="senha" placeholder="Senha" />
+  <button onclick="login()">Entrar</button>
+  <p id="erroLogin" style="color:red;"></p>
 </div>
 
-<div class="lista-cadastrados" id="lista-cadastrados"></div>
+<div id="painelAdmin" style="display:none;">
+
+  <p class="status-msg" id="status-conexao">Conectando ao banco de dados...</p>
+
+  <div class="admin-container">
+    <h2 id="titulo-form">Cadastrar Produto</h2>
+
+    <input type="hidden" id="editandoId" value="">
+
+    <label>Nome do Produto</label>
+    <input type="text" id="nome" placeholder="Ex: Kit Limpeza Principia">
+
+    <label>Descrição</label>
+    <textarea id="descricao" rows="2" placeholder="Ex: Todo tipo de pele Dia/noite"></textarea>
+
+    <label>Imagem (URL)</label>
+    <input type="text" id="imagem" placeholder="img/produto.jpg">
+
+    <label>Categoria</label>
+    <input type="text" id="categoria" placeholder="Ex: beleza, eletronicos, casa">
+
+    <label>Preço Original (riscado) — opcional</label>
+    <input type="text" id="precoDe" placeholder="Ex: R$ 110,25">
+
+    <label>Preço com Pix (aparece em destaque)</label>
+    <input type="text" id="precoPor" placeholder="Ex: R$ 76,07">
+
+    <label>Desconto no Pix (%) — opcional</label>
+    <input type="number" id="descontoPix" placeholder="Ex: 31">
+
+    <label>Preço em outros meios (sem Pix)</label>
+    <input type="text" id="outrosMeios" placeholder="Ex: 82,68">
+
+    <div class="checkbox-linha">
+      <input type="checkbox" id="pixAtivo">
+      <label style="margin:0;">Desconto exclusivo no Pix</label>
+    </div>
+
+    <div class="checkbox-linha">
+      <input type="checkbox" id="freteGratis">
+      <label style="margin:0;">Frete grátis</label>
+    </div>
+
+    <label>Selo (opcional)</label>
+    <input type="text" id="selo" placeholder="Ex: MAIS VENDIDO">
+
+    <label>Link de Afiliado</label>
+    <input type="url" id="linkAfiliado" placeholder="https://...">
+
+    <button onclick="salvarProduto()" id="btnSalvar">Salvar Produto</button>
+    <button onclick="logout()" style="background:#999; margin-left:10px;">Sair</button>
+  </div>
+
+  <div class="lista-cadastrados" id="lista-cadastrados"></div>
+
+</div>
 
 <script>
 // ===== CONFIGURAÇÃO DO FIREBASE =====
-// Substitua pelos dados do SEU projeto (Firebase Console > Configurações > Seus apps)
 const firebaseConfig = {
   apiKey: "AIzaSyA4aZXX4J_OkFRVcyCcgh-3QPz0mqXnYlw",
   authDomain: "ofertaeboa.firebaseapp.com",
@@ -114,8 +131,34 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const colecaoProdutos = db.collection("produtos");
 
-document.getElementById("status-conexao").textContent = "Conectado ao banco de dados ✅";
+// ===== LOGIN / AUTENTICAÇÃO =====
+function login() {
+  const email = document.getElementById('email').value;
+  const senha = document.getElementById('senha').value;
 
+  firebase.auth().signInWithEmailAndPassword(email, senha)
+    .catch(() => {
+      document.getElementById('erroLogin').innerText = 'E-mail ou senha inválidos';
+    });
+}
+
+function logout() {
+  firebase.auth().signOut();
+}
+
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('painelAdmin').style.display = 'block';
+    document.getElementById("status-conexao").textContent = "Conectado ao banco de dados ✅";
+    renderizarLista();
+  } else {
+    document.getElementById('loginBox').style.display = 'block';
+    document.getElementById('painelAdmin').style.display = 'none';
+  }
+});
+
+// ===== FUNÇÕES DO FORMULÁRIO =====
 function limparFormulario() {
   document.getElementById("editandoId").value = "";
   document.getElementById("titulo-form").textContent = "Cadastrar Produto";
@@ -241,8 +284,6 @@ async function renderizarLista() {
     container.innerHTML = `<p style='text-align:center; color:red;'>Erro ao carregar produtos: ${erro.message}</p>`;
   }
 }
-
-renderizarLista();
 </script>
 
 </body>
