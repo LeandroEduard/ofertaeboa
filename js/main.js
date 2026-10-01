@@ -69,7 +69,16 @@ function renderizarProdutos(lista) {
 
 function gerarFiltros() {
   if (!filtrosContainer) return;
+
   const categorias = [...new Set(listaFinal.map(p => p.categoria).filter(Boolean))];
+
+  if (categorias.length === 0) {
+    filtrosContainer.innerHTML = "";
+    filtrosContainer.style.display = "none";
+    return;
+  }
+
+  filtrosContainer.style.display = "";
 
   let botoesHtml = `<button class="ativo" onclick="filtrarCategoria('todos', this)">Todos</button>`;
   categorias.forEach(cat => {
