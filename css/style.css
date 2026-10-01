@@ -211,19 +211,16 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .filtros button {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  color: #444;
-  transition: 0.2s;
+  padding: 4px 10px;   /* diminua esses valores */
+  font-size: 10px;
+  line-height: 1;
+  border-radius: 6px;
+  min-width: unset;    /* remove largura mínima, se houver */
+  height: auto;        /* remove altura fixa, se houver */
 }
 
 .filtros button:hover {
