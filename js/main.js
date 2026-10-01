@@ -13,18 +13,24 @@ function renderizarProdutos(lista) {
     return;
   }
 
- lista.forEach(p => {
+  lista.forEach(p => {
     const seloHtml = p.selo ? `<span class="selo">${p.selo}</span>` : "";
     const precoAntigoHtml = p.precoDe ? `<p class="preco-antigo">${p.precoDe}</p>` : "";
+
+    let descontoTexto = "";
+    if (p.pixAtivo) {
+      descontoTexto = p.descontoPix ? ` ${p.descontoPix}% OFF no Pix` : " no Pix";
+    }
+    const tagHtml = descontoTexto ? `<span class="tag-pix">${descontoTexto}</span>` : "";
 
     const precoDestaqueHtml = `
       <div class="linha-preco-atual">
         <span class="preco-atual">${p.precoPor}</span>
+        ${tagHtml}
       </div>`;
 
     const outrosMeiosHtml = p.outrosMeios ? `<p class="outros-meios">ou R$ ${p.outrosMeios} em outros meios</p>` : "";
     const freteHtml = p.freteGratis ? `<p class="frete-gratis">Frete grátis</p>` : "";
-
 
     container.innerHTML += `
       <div class="card">
@@ -74,6 +80,7 @@ function filtrarCategoria(categoria, botaoClicado) {
 function registrarClique(id) {
   console.log("Clique registrado no produto ID:", id);
 }
+
 const grid = document.getElementById('lista-produtos');
 
 grid.addEventListener('wheel', function (e) {
@@ -85,7 +92,6 @@ grid.addEventListener('wheel', function (e) {
     window.scrollBy(0, e.deltaY);
   }
 }, { passive: false });
-
 
 gerarFiltros();
 renderizarProdutos(listaFinal);

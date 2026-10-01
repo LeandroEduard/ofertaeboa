@@ -78,11 +78,6 @@ if (chaveFornecida !== CHAVE_SECRETA) {
     <label style="margin:0;">Frete grátis</label>
   </div>
 
-  <div class="checkbox-linha">
-    <input type="checkbox" id="freteGratis">
-    <label style="margin:0;">Frete grátis</label>
-  </div>
-
   <label>Selo (opcional)</label>
   <input type="text" id="selo" placeholder="Ex: MAIS VENDIDO">
 
@@ -121,11 +116,11 @@ function salvarProduto() {
     precoDe: document.getElementById("precoDe").value,
     precoPor: document.getElementById("precoPor").value,
     descontoPix: document.getElementById("descontoPix").value,
+    pixAtivo: document.getElementById("pixAtivo").checked,
     outrosMeios: document.getElementById("outrosMeios").value,
     freteGratis: document.getElementById("freteGratis").checked,
     selo: document.getElementById("selo").value,
     linkAfiliado: document.getElementById("linkAfiliado").value
-
   };
 
   if (!dados.nome || !dados.precoPor || !dados.linkAfiliado) {
@@ -173,7 +168,6 @@ function editarProduto(id) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 
 function excluirProduto(id) {
   let produtos = getProdutos();
