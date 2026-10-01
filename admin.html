@@ -1,4 +1,10 @@
-// --- Proteção por link secreto ---
+
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  // --- Proteção por link secreto ---
 const CHAVE_SECRETA = "leandro-adm-30f3k71"; // <- troque aqui
 const params = new URLSearchParams(window.location.search);
 const chaveFornecida = params.get("chave");
@@ -8,11 +14,6 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   throw new Error("Acesso negado");
 }
 // --- Fim da proteção ---
-
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
 <meta charset="UTF-8">
 <title>Painel Administrativo</title>
 <link rel="stylesheet" href="css/style.css">
