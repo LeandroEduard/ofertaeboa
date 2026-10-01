@@ -1,8 +1,22 @@
-const produtosSalvos = JSON.parse(localStorage.getItem("produtosCadastrados"));
-const listaFinal = (produtosSalvos && produtosSalvos.length > 0) ? produtosSalvos : produtos;
+// ===== CONFIGURAÇÃO DO FIREBASE =====
+// Use os MESMOS dados do admin.html
+const firebaseConfig = {
+  apiKey: "AIzaSyA4aZXX4J_OkFRVcyCcgh-3QPz0mqXnYlw",
+  authDomain: "ofertaeboa.firebaseapp.com",
+  projectId: "ofertaeboa",
+  storageBucket: "ofertaeboa.firebasestorage.app",
+  messagingSenderId: "351509601634",
+  appId: "1:351509601634:web:4c3666b6bacaf5661ba03b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const colecaoProdutos = db.collection("produtos");
 
 const container = document.getElementById("lista-produtos");
 const filtrosContainer = document.getElementById("filtros");
+
+let listaFinal = [];
 
 function renderizarProdutos(lista) {
   if (!container) return;
@@ -45,7 +59,7 @@ function renderizarProdutos(lista) {
           ${freteHtml}
           <p class="aviso-preco">*Preço sujeito a alteração pelo anunciante. Confirme o valor antes de concluir a compra.</p>
           <a href="${p.linkAfiliado}" target="_blank" rel="noopener sponsored"
-             class="btn-comprar" onclick="registrarClique(${p.id})">
+             class="btn-comprar" onclick="registrarClique('${p.id}')">
             Quero Comprar 🔥
           </a>
         </div>
@@ -81,17 +95,41 @@ function registrarClique(id) {
   console.log("Clique registrado no produto ID:", id);
 }
 
+async function carregarProdutos() {
+  if (container) {
+    container.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Carregando produtos...</p>";
+  }
+
+  try {
+    const snapshot = await colecaoProdutos.orderBy("criadoEm", "desc").get();
+    listaFinal = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (listaFinal.length === 0 && typeof produtos !== "undefined") {
+      listaFinal = produtos;
+    }
+  } catch (erro) {
+    console.error("Erro ao carregar produtos do Firestore:", erro);
+    if (typeof produtos !== "undefined") {
+      listaFinal = produtos;
+    }
+  }
+
+  gerarFiltros();
+  renderizarProdutos(listaFinal);
+}
+
 const grid = document.getElementById('lista-produtos');
 
-grid.addEventListener('wheel', function (e) {
-  const noTopo = grid.scrollTop === 0;
-  const noFundo = grid.scrollHeight - grid.scrollTop <= grid.clientHeight + 1;
+if (grid) {
+  grid.addEventListener('wheel', function (e) {
+    const noTopo = grid.scrollTop === 0;
+    const noFundo = grid.scrollHeight - grid.scrollTop <= grid.clientHeight + 1;
 
-  if ((noTopo && e.deltaY < 0) || (noFundo && e.deltaY > 0)) {
-    e.preventDefault();
-    window.scrollBy(0, e.deltaY);
-  }
-}, { passive: false });
+    if ((noTopo && e.deltaY < 0) || (noFundo && e.deltaY > 0)) {
+      e.preventDefault();
+      window.scrollBy(0, e.deltaY);
+    }
+  }, { passive: false });
+}
 
-gerarFiltros();
-renderizarProdutos(listaFinal);
+carregarProdutos();

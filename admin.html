@@ -16,6 +16,11 @@ if (chaveFornecida !== CHAVE_SECRETA) {
 <meta charset="UTF-8">
 <title>Painel Administrativo</title>
 <link rel="stylesheet" href="css/style.css">
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <style>
   .admin-container { max-width: 600px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
   .admin-container h2 { margin-bottom: 20px; }
@@ -30,14 +35,18 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   .admin-container .checkbox-linha input { width: auto; }
   .admin-container button { margin-top: 20px; padding: 10px 20px; background: #2979ff; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
   .admin-container button:hover { background: #1e5fd9; }
+  .admin-container button:disabled { background: #999; cursor: not-allowed; }
   .lista-cadastrados { max-width: 600px; margin: 20px auto; }
   .lista-cadastrados .item { background: #fff; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 10px; }
   .lista-cadastrados .item .acoes { display: flex; gap: 6px; }
   .lista-cadastrados button.btn-editar { background: #ffa000; padding: 5px 10px; font-size: 12px; margin: 0; }
   .lista-cadastrados button.btn-excluir { background: #e53935; padding: 5px 10px; font-size: 12px; margin: 0; }
+  .status-msg { text-align: center; font-size: 13px; color: #666; margin: 10px auto; max-width: 600px; }
 </style>
 </head>
 <body>
+
+<p class="status-msg" id="status-conexao">Conectando ao banco de dados...</p>
 
 <div class="admin-container">
   <h2 id="titulo-form">Cadastrar Produto</h2>
@@ -90,9 +99,22 @@ if (chaveFornecida !== CHAVE_SECRETA) {
 <div class="lista-cadastrados" id="lista-cadastrados"></div>
 
 <script>
-function getProdutos() {
-  return JSON.parse(localStorage.getItem("produtosCadastrados")) || [];
-}
+// ===== CONFIGURAÇÃO DO FIREBASE =====
+// Substitua pelos dados do SEU projeto (Firebase Console > Configurações > Seus apps)
+const firebaseConfig = {
+  apiKey: "AIzaSyA4aZXX4J_OkFRVcyCcgh-3QPz0mqXnYlw",
+  authDomain: "ofertaeboa.firebaseapp.com",
+  projectId: "ofertaeboa",
+  storageBucket: "ofertaeboa.firebasestorage.app",
+  messagingSenderId: "351509601634",
+  appId: "1:351509601634:web:4c3666b6bacaf5661ba03b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const colecaoProdutos = db.collection("produtos");
+
+document.getElementById("status-conexao").textContent = "Conectado ao banco de dados ✅";
 
 function limparFormulario() {
   document.getElementById("editandoId").value = "";
@@ -104,8 +126,14 @@ function limparFormulario() {
   });
 }
 
-function salvarProduto() {
-  const produtos = getProdutos();
+function setBotaoCarregando(carregando) {
+  const btn = document.getElementById("btnSalvar");
+  btn.disabled = carregando;
+  if (carregando) btn.dataset.textoOriginal = btn.textContent;
+  btn.textContent = carregando ? "Salvando..." : (btn.dataset.textoOriginal || "Salvar Produto");
+}
+
+async function salvarProduto() {
   const editandoId = document.getElementById("editandoId").value;
 
   const dados = {
@@ -128,66 +156,90 @@ function salvarProduto() {
     return;
   }
 
-  if (editandoId) {
-    const index = produtos.findIndex(p => p.id === Number(editandoId));
-    if (index !== -1) {
-      produtos[index] = { ...produtos[index], ...dados };
+  setBotaoCarregando(true);
+
+  try {
+    if (editandoId) {
+      await colecaoProdutos.doc(editandoId).update(dados);
+      alert("Produto atualizado com sucesso!");
+    } else {
+      dados.criadoEm = Date.now();
+      await colecaoProdutos.add(dados);
+      alert("Produto cadastrado com sucesso!");
     }
-    alert("Produto atualizado com sucesso!");
-  } else {
-    produtos.push({ id: Date.now(), ...dados });
-    alert("Produto cadastrado com sucesso!");
+    limparFormulario();
+    renderizarLista();
+  } catch (erro) {
+    alert("Erro ao salvar: " + erro.message);
+  } finally {
+    setBotaoCarregando(false);
   }
-
-  localStorage.setItem("produtosCadastrados", JSON.stringify(produtos));
-  limparFormulario();
-  renderizarLista();
 }
 
-function editarProduto(id) {
-  const produtos = getProdutos();
-  const p = produtos.find(prod => prod.id === id);
-  if (!p) return;
+async function editarProduto(id) {
+  try {
+    const doc = await colecaoProdutos.doc(id).get();
+    if (!doc.exists) return;
+    const p = doc.data();
 
-  document.getElementById("editandoId").value = p.id;
-  document.getElementById("nome").value = p.nome || "";
-  document.getElementById("descricao").value = p.descricao || "";
-  document.getElementById("imagem").value = p.imagem || "";
-  document.getElementById("categoria").value = p.categoria || "";
-  document.getElementById("precoDe").value = p.precoDe || "";
-  document.getElementById("precoPor").value = p.precoPor || "";
-  document.getElementById("descontoPix").value = p.descontoPix || "";
-  document.getElementById("pixAtivo").checked = !!p.pixAtivo;
-  document.getElementById("outrosMeios").value = p.outrosMeios || "";
-  document.getElementById("freteGratis").checked = !!p.freteGratis;
-  document.getElementById("selo").value = p.selo || "";
-  document.getElementById("linkAfiliado").value = p.linkAfiliado || "";
+    document.getElementById("editandoId").value = id;
+    document.getElementById("nome").value = p.nome || "";
+    document.getElementById("descricao").value = p.descricao || "";
+    document.getElementById("imagem").value = p.imagem || "";
+    document.getElementById("categoria").value = p.categoria || "";
+    document.getElementById("precoDe").value = p.precoDe || "";
+    document.getElementById("precoPor").value = p.precoPor || "";
+    document.getElementById("descontoPix").value = p.descontoPix || "";
+    document.getElementById("pixAtivo").checked = !!p.pixAtivo;
+    document.getElementById("outrosMeios").value = p.outrosMeios || "";
+    document.getElementById("freteGratis").checked = !!p.freteGratis;
+    document.getElementById("selo").value = p.selo || "";
+    document.getElementById("linkAfiliado").value = p.linkAfiliado || "";
 
-  document.getElementById("titulo-form").textContent = "Editar Produto";
-  document.getElementById("btnSalvar").textContent = "Atualizar Produto";
+    document.getElementById("titulo-form").textContent = "Editar Produto";
+    document.getElementById("btnSalvar").textContent = "Atualizar Produto";
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (erro) {
+    alert("Erro ao carregar produto: " + erro.message);
+  }
 }
 
-function excluirProduto(id) {
-  let produtos = getProdutos();
-  produtos = produtos.filter(p => p.id !== id);
-  localStorage.setItem("produtosCadastrados", JSON.stringify(produtos));
-  renderizarLista();
+async function excluirProduto(id) {
+  if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+  try {
+    await colecaoProdutos.doc(id).delete();
+    renderizarLista();
+  } catch (erro) {
+    alert("Erro ao excluir: " + erro.message);
+  }
 }
 
-function renderizarLista() {
-  const produtos = getProdutos();
+async function renderizarLista() {
   const container = document.getElementById("lista-cadastrados");
-  container.innerHTML = produtos.map(p => `
-    <div class="item">
-      <span>${p.nome} (${p.categoria || "sem categoria"})</span>
-      <div class="acoes">
-        <button class="btn-editar" onclick="editarProduto(${p.id})">Editar</button>
-        <button class="btn-excluir" onclick="excluirProduto(${p.id})">Excluir</button>
+  container.innerHTML = "<p style='text-align:center;'>Carregando...</p>";
+
+  try {
+    const snapshot = await colecaoProdutos.orderBy("criadoEm", "desc").get();
+    const produtos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (produtos.length === 0) {
+      container.innerHTML = "<p style='text-align:center;'>Nenhum produto cadastrado ainda.</p>";
+      return;
+    }
+
+    container.innerHTML = produtos.map(p => `
+      <div class="item">
+        <span>${p.nome} (${p.categoria || "sem categoria"})</span>
+        <div class="acoes">
+          <button class="btn-editar" onclick="editarProduto('${p.id}')">Editar</button>
+          <button class="btn-excluir" onclick="excluirProduto('${p.id}')">Excluir</button>
+        </div>
       </div>
-    </div>
-  `).join("");
+    `).join("");
+  } catch (erro) {
+    container.innerHTML = `<p style='text-align:center; color:red;'>Erro ao carregar produtos: ${erro.message}</p>`;
+  }
 }
 
 renderizarLista();
