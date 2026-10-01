@@ -16,12 +16,19 @@ function renderizarProdutos(lista) {
   lista.forEach(p => {
     const seloHtml = p.selo ? `<span class="selo">${p.selo}</span>` : "";
     const precoAntigoHtml = p.precoDe ? `<p class="preco-antigo">${p.precoDe}</p>` : "";
-    const descontoTexto = p.descontoPix ? ` ${p.descontoPix}% OFF no Pix` : " no Pix";
+
+    let descontoTexto = "";
+    if (p.pixAtivo) {
+      descontoTexto = p.descontoPix ? ` ${p.descontoPix}% OFF no Pix` : " no Pix";
+    }
+    const tagHtml = descontoTexto ? `<span class="tag-pix">${descontoTexto}</span>` : "";
+
     const precoDestaqueHtml = `
       <div class="linha-preco-atual">
         <span class="preco-atual">${p.precoPor}</span>
-        <span class="tag-pix">${descontoTexto}</span>
+        ${tagHtml}
       </div>`;
+
     const outrosMeiosHtml = p.outrosMeios ? `<p class="outros-meios">ou R$ ${p.outrosMeios} em outros meios</p>` : "";
     const freteHtml = p.freteGratis ? `<p class="frete-gratis">Frete grátis</p>` : "";
 

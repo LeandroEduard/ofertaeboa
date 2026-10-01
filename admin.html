@@ -69,6 +69,16 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   <input type="text" id="outrosMeios" placeholder="Ex: 82,68">
 
   <div class="checkbox-linha">
+    <input type="checkbox" id="pixAtivo">
+    <label style="margin:0;">Desconto exclusivo no Pix</label>
+  </div>
+
+  <div class="checkbox-linha">
+    <input type="checkbox" id="freteGratis">
+    <label style="margin:0;">Frete grátis</label>
+  </div>
+
+  <div class="checkbox-linha">
     <input type="checkbox" id="freteGratis">
     <label style="margin:0;">Frete grátis</label>
   </div>
@@ -115,6 +125,7 @@ function salvarProduto() {
     freteGratis: document.getElementById("freteGratis").checked,
     selo: document.getElementById("selo").value,
     linkAfiliado: document.getElementById("linkAfiliado").value
+
   };
 
   if (!dados.nome || !dados.precoPor || !dados.linkAfiliado) {
@@ -151,6 +162,7 @@ function editarProduto(id) {
   document.getElementById("precoDe").value = p.precoDe || "";
   document.getElementById("precoPor").value = p.precoPor || "";
   document.getElementById("descontoPix").value = p.descontoPix || "";
+  document.getElementById("pixAtivo").checked = !!p.pixAtivo;
   document.getElementById("outrosMeios").value = p.outrosMeios || "";
   document.getElementById("freteGratis").checked = !!p.freteGratis;
   document.getElementById("selo").value = p.selo || "";
@@ -161,6 +173,7 @@ function editarProduto(id) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 
 function excluirProduto(id) {
   let produtos = getProdutos();
