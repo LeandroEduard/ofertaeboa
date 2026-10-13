@@ -31,16 +31,32 @@ function renderizarProdutos(lista) {
     const seloHtml = p.selo ? `<span class="selo">${p.selo}</span>` : "";
     const precoAntigoHtml = p.precoDe ? `<p class="preco-antigo">${p.precoDe}</p>` : "";
 
-    let descontoTexto = "";
-    if (p.pixAtivo) {
-      descontoTexto = p.descontoPix ? ` ${p.descontoPix}% OFF no Pix` : " no Pix";
+    function paraNumero(valorTexto) {
+      if (!valorTexto) return null;
+      const limpo = String(valorTexto).replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
+      const numero = parseFloat(limpo);
+      return isNaN(numero) ? null : numero;
     }
-    const tagHtml = descontoTexto ? `<span class="tag-pix">${descontoTexto}</span>` : "";
+
+    let tagDescontoGeralHtml = "";
+    const valorDe = paraNumero(p.precoDe);
+    const valorPor = paraNumero(p.precoPor);
+    if (valorDe && valorPor && valorDe > valorPor) {
+      const percentual = Math.round(((valorDe - valorPor) / valorDe) * 100);
+      tagDescontoGeralHtml = `<span class="tag-desconto">${percentual}% OFF</span>`;
+    }
+
+    let tagPixHtml = "";
+    if (p.pixAtivo) {
+      const descontoTexto = p.descontoPix ? `   ${p.descontoPix}% OFF no Pix` : "no Pix";
+      tagPixHtml = `<span class="tag-pix">${descontoTexto}</span>`;
+    }
 
     const precoDestaqueHtml = `
       <div class="linha-preco-atual">
         <span class="preco-atual">${p.precoPor}</span>
-        ${tagHtml}
+        ${tagDescontoGeralHtml}
+        ${tagPixHtml}
       </div>`;
 
     const outrosMeiosHtml = p.outrosMeios ? `<p class="outros-meios">ou R$ ${p.outrosMeios} em outros meios</p>` : "";

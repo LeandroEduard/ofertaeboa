@@ -44,6 +44,8 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   .lista-cadastrados button.btn-excluir { background: #e53935; padding: 5px 10px; font-size: 12px; margin: 0; }
   .status-msg { text-align: center; font-size: 13px; color: #666; margin: 10px auto; max-width: 600px; }
 
+  #campoDescontoPix { display: none; }
+
   #loginBox { max-width: 320px; margin: 80px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
   #loginBox input { width: 100%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
   #loginBox button { margin-top: 15px; padding: 10px 20px; background: #2979ff; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
@@ -83,19 +85,21 @@ if (chaveFornecida !== CHAVE_SECRETA) {
     <label>Preço Original (riscado) — opcional</label>
     <input type="text" id="precoDe" placeholder="Ex: R$ 110,25">
 
-    <label>Preço com Pix (aparece em destaque)</label>
+    <label>Preço com Desconto (aparece em destaque)</label>
     <input type="text" id="precoPor" placeholder="Ex: R$ 76,07">
 
-    <label>Desconto no Pix (%) — opcional</label>
-    <input type="number" id="descontoPix" placeholder="Ex: 31">
+    <div class="checkbox-linha">
+      <input type="checkbox" id="pixAtivo" onchange="toggleCampoDescontoPix()">
+      <label style="margin:0;">Ativar desconto exclusivo no Pix</label>
+    </div>
+
+    <div id="campoDescontoPix">
+      <label>Desconto no Pix (%) — opcional</label>
+      <input type="number" id="descontoPix" placeholder="Ex: 31">
+    </div>
 
     <label>Preço em outros meios (sem Pix)</label>
     <input type="text" id="outrosMeios" placeholder="Ex: 82,68">
-
-    <div class="checkbox-linha">
-      <input type="checkbox" id="pixAtivo">
-      <label style="margin:0;">Desconto exclusivo no Pix</label>
-    </div>
 
     <div class="checkbox-linha">
       <input type="checkbox" id="freteGratis">
@@ -158,6 +162,15 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
+// ===== CONTROLE DO CAMPO DE DESCONTO PIX =====
+function toggleCampoDescontoPix() {
+  const ativo = document.getElementById("pixAtivo").checked;
+  document.getElementById("campoDescontoPix").style.display = ativo ? "block" : "none";
+  if (!ativo) {
+    document.getElementById("descontoPix").value = "";
+  }
+}
+
 // ===== FUNÇÕES DO FORMULÁRIO =====
 function limparFormulario() {
   document.getElementById("editandoId").value = "";
@@ -167,6 +180,7 @@ function limparFormulario() {
     if (el.type === "checkbox") el.checked = false;
     else if (el.id !== "editandoId") el.value = "";
   });
+  toggleCampoDescontoPix();
 }
 
 function setBotaoCarregando(carregando) {
@@ -195,7 +209,7 @@ async function salvarProduto() {
   };
 
   if (!dados.nome || !dados.precoPor || !dados.linkAfiliado) {
-    alert("Preencha ao menos Nome, Preço com Pix e Link de Afiliado.");
+    alert("Preencha ao menos Nome, Preço com Desconto e Link de Afiliado.");
     return;
   }
 
@@ -238,6 +252,8 @@ async function editarProduto(id) {
     document.getElementById("freteGratis").checked = !!p.freteGratis;
     document.getElementById("selo").value = p.selo || "";
     document.getElementById("linkAfiliado").value = p.linkAfiliado || "";
+
+    toggleCampoDescontoPix();
 
     document.getElementById("titulo-form").textContent = "Editar Produto";
     document.getElementById("btnSalvar").textContent = "Atualizar Produto";
