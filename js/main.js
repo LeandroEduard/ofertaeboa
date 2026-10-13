@@ -42,7 +42,7 @@ function renderizarProdutos(lista) {
     const valorDe = paraNumero(p.precoDe);
     const valorPor = paraNumero(p.precoPor);
     if (valorDe && valorPor && valorDe > valorPor) {
-      const percentual = Math.round(((valorDe - valorPor) / valorDe) * 100);
+      const percentual = Math.floor(((valorDe - valorPor) / valorDe) * 100);
       tagDescontoGeralHtml = `<span class="tag-desconto">${percentual}% OFF</span>`;
     }
 
