@@ -18,6 +18,28 @@ const filtrosContainer = document.getElementById("filtros");
 
 let listaFinal = [];
 
+function paraNumero(valorTexto) {
+  if (valorTexto === null || valorTexto === undefined || valorTexto === "") return null;
+  if (typeof valorTexto === "number") return valorTexto;
+
+  const limpo = String(valorTexto)
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\.(?=\d{3},)/g, "")
+    .replace(",", ".");
+
+  const numero = parseFloat(limpo);
+  return isNaN(numero) ? null : numero;
+}
+
+function calcularPercentualAutomatico(p) {
+  const valorDe = paraNumero(p.precoDe);
+  const valorPor = paraNumero(p.precoPor);
+  if (valorDe && valorPor && valorDe > valorPor) {
+    return Math.round(((valorDe - valorPor) / valorDe) * 100);
+  }
+  return null;
+}
+
 function renderizarProdutos(lista) {
   if (!container) return;
   container.innerHTML = "";
@@ -31,32 +53,30 @@ function renderizarProdutos(lista) {
     const seloHtml = p.selo ? `<span class="selo">${p.selo}</span>` : "";
     const precoAntigoHtml = p.precoDe ? `<p class="preco-antigo">${p.precoDe}</p>` : "";
 
-    function paraNumero(valorTexto) {
-      if (!valorTexto) return null;
-      const limpo = String(valorTexto).replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
-      const numero = parseFloat(limpo);
-      return isNaN(numero) ? null : numero;
-    }
+    // Regras independentes:
+    // - Se o Pix estiver ativo, mostra SOMENTE a tag do Pix (prevalece sobre o desconto geral).
+    // - Se o Pix não estiver ativo e o desconto geral estiver ativo, mostra SOMENTE a tag geral.
+    // - Em ambos os casos, se o percentual manual foi digitado, ele prevalece sobre o cálculo automático.
+    let tagHtml = "";
 
-    let tagDescontoGeralHtml = "";
-    const valorDe = paraNumero(p.precoDe);
-    const valorPor = paraNumero(p.precoPor);
-    if (valorDe && valorPor && valorDe > valorPor) {
-      const percentual = Math.floor(((valorDe - valorPor) / valorDe) * 100);
-      tagDescontoGeralHtml = `<span class="tag-desconto">${percentual}% OFF</span>`;
-    }
-
-    let tagPixHtml = "";
     if (p.pixAtivo) {
-      const descontoTexto = p.descontoPix ? `   ${p.descontoPix}% OFF no Pix` : "no Pix";
-      tagPixHtml = `<span class="tag-pix">${descontoTexto}</span>`;
+      const manual = paraNumero(p.descontoPix);
+      const percentual = manual !== null ? manual : calcularPercentualAutomatico(p);
+      tagHtml = percentual !== null
+        ? `<span class="tag-pix">${percentual}% OFF no Pix</span>`
+        : `<span class="tag-pix">no Pix</span>`;
+    } else if (p.descontoAtivo) {
+      const manual = paraNumero(p.descontoGeral);
+      const percentual = manual !== null ? manual : calcularPercentualAutomatico(p);
+      if (percentual !== null) {
+        tagHtml = `<span class="tag-desconto">${percentual}% OFF</span>`;
+      }
     }
 
     const precoDestaqueHtml = `
       <div class="linha-preco-atual">
         <span class="preco-atual">${p.precoPor}</span>
-        ${tagDescontoGeralHtml}
-        ${tagPixHtml}
+        ${tagHtml}
       </div>`;
 
     const outrosMeiosHtml = p.outrosMeios ? `<p class="outros-meios">ou R$ ${p.outrosMeios} em outros meios</p>` : "";

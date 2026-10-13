@@ -45,6 +45,7 @@ if (chaveFornecida !== CHAVE_SECRETA) {
   .status-msg { text-align: center; font-size: 13px; color: #666; margin: 10px auto; max-width: 600px; }
 
   #campoDescontoPix { display: none; }
+  #campoDescontoGeral { display: none; }
 
   #loginBox { max-width: 320px; margin: 80px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
   #loginBox input { width: 100%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
@@ -89,12 +90,22 @@ if (chaveFornecida !== CHAVE_SECRETA) {
     <input type="text" id="precoPor" placeholder="Ex: R$ 76,07">
 
     <div class="checkbox-linha">
+      <input type="checkbox" id="descontoAtivo" onchange="toggleCampoDescontoGeral()">
+      <label style="margin:0;">Ativar desconto (sem Pix)</label>
+    </div>
+
+    <div id="campoDescontoGeral">
+      <label>Desconto geral (%) — opcional, deixe vazio para calcular automaticamente pelo preço riscado</label>
+      <input type="number" id="descontoGeral" placeholder="Ex: 5">
+    </div>
+
+    <div class="checkbox-linha">
       <input type="checkbox" id="pixAtivo" onchange="toggleCampoDescontoPix()">
       <label style="margin:0;">Ativar desconto exclusivo no Pix</label>
     </div>
 
     <div id="campoDescontoPix">
-      <label>Desconto no Pix (%) — opcional</label>
+      <label>Desconto no Pix (%) — opcional, deixe vazio para calcular automaticamente pelo preço riscado</label>
       <input type="number" id="descontoPix" placeholder="Ex: 31">
     </div>
 
@@ -162,12 +173,20 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
-// ===== CONTROLE DO CAMPO DE DESCONTO PIX =====
+// ===== CONTROLE DOS CAMPOS DE DESCONTO =====
 function toggleCampoDescontoPix() {
   const ativo = document.getElementById("pixAtivo").checked;
   document.getElementById("campoDescontoPix").style.display = ativo ? "block" : "none";
   if (!ativo) {
     document.getElementById("descontoPix").value = "";
+  }
+}
+
+function toggleCampoDescontoGeral() {
+  const ativo = document.getElementById("descontoAtivo").checked;
+  document.getElementById("campoDescontoGeral").style.display = ativo ? "block" : "none";
+  if (!ativo) {
+    document.getElementById("descontoGeral").value = "";
   }
 }
 
@@ -181,6 +200,7 @@ function limparFormulario() {
     else if (el.id !== "editandoId") el.value = "";
   });
   toggleCampoDescontoPix();
+  toggleCampoDescontoGeral();
 }
 
 function setBotaoCarregando(carregando) {
@@ -200,6 +220,8 @@ async function salvarProduto() {
     categoria: document.getElementById("categoria").value.trim().toLowerCase(),
     precoDe: document.getElementById("precoDe").value,
     precoPor: document.getElementById("precoPor").value,
+    descontoAtivo: document.getElementById("descontoAtivo").checked,
+    descontoGeral: document.getElementById("descontoGeral").value,
     descontoPix: document.getElementById("descontoPix").value,
     pixAtivo: document.getElementById("pixAtivo").checked,
     outrosMeios: document.getElementById("outrosMeios").value,
@@ -246,6 +268,8 @@ async function editarProduto(id) {
     document.getElementById("categoria").value = p.categoria || "";
     document.getElementById("precoDe").value = p.precoDe || "";
     document.getElementById("precoPor").value = p.precoPor || "";
+    document.getElementById("descontoAtivo").checked = !!p.descontoAtivo;
+    document.getElementById("descontoGeral").value = p.descontoGeral || "";
     document.getElementById("descontoPix").value = p.descontoPix || "";
     document.getElementById("pixAtivo").checked = !!p.pixAtivo;
     document.getElementById("outrosMeios").value = p.outrosMeios || "";
@@ -254,6 +278,7 @@ async function editarProduto(id) {
     document.getElementById("linkAfiliado").value = p.linkAfiliado || "";
 
     toggleCampoDescontoPix();
+    toggleCampoDescontoGeral();
 
     document.getElementById("titulo-form").textContent = "Editar Produto";
     document.getElementById("btnSalvar").textContent = "Atualizar Produto";
